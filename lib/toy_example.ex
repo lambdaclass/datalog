@@ -2,23 +2,30 @@ defmodule Example do
   use Datalog
 
   # Rules
-  rule [:grandfather, "sam", :x] do
-    [:father, "sam", :X]
-    [:parents, :Y, :X]
+  defrule grandfather("sam", :X) do
+    [:father, "sam", :Y]
+    [:parent, :Y, :X]
   end
 
-  rule [:in, "kim", :R] do
+  defrule grandfather(:X, :Y) do
+    [:father, :X, :Z]
+    [:parent, :Z, :Y]
+  end
+
+  defrule in_("kim", :R) do
     [:teaches, "kim", "cs422"]
     [:in, "cs422", :R]
   end
 
-  rule [:slithy, "toves"] do
+  defrule slithy("toves") do
     :mimsy
     :borogroves
     [:outgrabe, "mome", :Raths]
   end
 
   # Fact (Rule with empty body)
-  rule [:grandfather, "bill", "joe"] do
+  deffact(grandfather("bill", "joe"))
+
+  defrule grandfather("bill", "joe") do
   end
 end
