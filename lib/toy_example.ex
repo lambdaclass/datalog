@@ -23,9 +23,12 @@ defmodule Example do
     [:outgrabe, "mome", :Raths]
   end
 
-  # Fact (Rule with empty body)
-  deffact(grandfather("bill", "joe"))
+  # Facts (Rules with empty body)
+  deffact grandfather("bill", "joe")
 
-  defrule grandfather("bill", "joe") do
-  end
+  deffact parent("sam", "harry")
+
+  deffact parent
+
+  deffact sunny
 end

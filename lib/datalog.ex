@@ -37,6 +37,14 @@ defmodule Datalog do
     end
   end
 
+  defmacro deffact({name, _, nil}) do
+    quote do
+      @facts {%Rule{head: unquote([name])}}
+      def unquote(name)() do
+      end
+    end
+  end
+
   defmacro deffact({name, _, args}) do
     quote do
       @facts {%Rule{head: unquote([name] ++ args)}}
