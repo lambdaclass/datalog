@@ -1,34 +1,17 @@
 defmodule Example do
   use Datalog
 
-  # Rules
-  defrule grandfather("sam", :X) do
-    [:father, "sam", :Y]
-    [:parent, :Y, :X]
-  end
+  deffact person(:juan)
 
-  defrule grandfather(:X, :Y) do
-    [:father, :X, :Z]
-    [:parent, :Z, :Y]
-  end
+  deffact person(:caro)
 
-  defrule in_("kim", :R) do
-    [:teaches, "kim", "cs422"]
-    [:in, "cs422", :R]
-  end
+  deffact parent(:juana)
 
-  defrule slithy("toves") do
-    :mimsy
-    :borogroves
-    [:outgrabe, "mome", :Raths]
-  end
+  deffact parent(:helena, :juan)
 
-  # Facts (Rules with empty body)
-  deffact grandfather("bill", "joe")
+  deffact related(:helena, :juan, :juana, :aida)
 
-  deffact parent("sam", "harry")
-
-  deffact parent
-
-  deffact sunny
+  # defrule ancestor(x, y) do
+  #   parent(x, y)
+  # end
 end
