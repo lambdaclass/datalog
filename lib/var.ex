@@ -4,10 +4,10 @@ defmodule Datalog.Var do
   """
 
   @derive {Inspect, only: [:name]}
-  @enforce_keys [:name, :__ref__]
-  defstruct [:name, :__ref__]
+  @enforce_keys [:name, :__id__]
+  defstruct [:name, :__id__]
 
-  @type t :: %Datalog.Var{name: String.t(), __ref__: reference()}
+  @type t :: %Datalog.Var{name: String.t(), __id__: binary()}
 
   @doc """
   Returns a new variable with the given (optional) name.
@@ -19,6 +19,6 @@ defmodule Datalog.Var do
   """
   @spec new(name :: String.t()) :: Datalog.Var.t()
   def new(name \\ "unnamed") when is_binary(name) or is_atom(name) do
-    %Datalog.Var{name: name, __ref__: make_ref()}
+    %Datalog.Var{name: name, __id__: UUID.uuid1()}
   end
 end

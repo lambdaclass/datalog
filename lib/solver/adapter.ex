@@ -13,7 +13,8 @@ defmodule Datalog.Solver.Adapter do
   to parse and compile rules.
   Returns the compiled knowlege base.
   """
-  @callback init_kb(list(Datalog.Rule.t()), Datalog.relation_facts()) :: compiled_kb()
+  @callback init_kb(Datalog.relation_facts(), Datalog.relation_rules()) ::
+              {:ok, compiled_kb()} | {:error, term()}
 
   @doc """
   Takes a knowledge base and a goal and returns a list of all the facts that satisfy
@@ -27,4 +28,10 @@ defmodule Datalog.Solver.Adapter do
   """
   @callback one(compiled_kb(), Datalog.goal()) ::
               {:ok, Datalog.fact()} | {:error, term()}
+
+  @doc """
+  Takes a knowledge base and a goal and returns true if there is a fact that satisfies the goal.
+  Returns false otherwise.
+  """
+  @callback exists?(compiled_kb(), Datalog.goal()) :: boolean()
 end

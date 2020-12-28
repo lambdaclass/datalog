@@ -6,104 +6,87 @@ if Code.ensure_loaded?(ExLogic) do
 
     use ExLogic
 
-    alias ExLogic.Var
-    alias Datalog.Rule
+    alias Datalog.{Rule, Var}
 
     @behaviour Datalog.Solver.Adapter
 
     @impl Datalog.Solver.Adapter
-    def init_kb(rules, relation_facts) do
-      IO.inspect(relation_facts)
+    def init_kb(relation_facts, relation_rules) do
       compiled_facts =
-        for {rel, terms} <- relation_facts, into: %{} do
-          fact_var = Var.new(rel)
-
-          compiled_goal =
-            terms
-            |> Enum.map(&eq(fact_var, &1))
-            |> disj()
-
-          {rel, compiled_goal}
+        for {_rel, fact} <- relation_facts do
+          fact
         end
+        |> List.flatten()
 
-      compiled_rules =
-        for %Rule{head: literal, body: body} <- rules, into: %{} do
-          head = rewrite_vars(literal)
-
-          body
-          |> Enum.map(&rewrite_vars/1)
-          |> Enum.map(&eq(head, &1))
-          |> conj()
-        end
-        |> conj()
-
-      %{relation_facts: compiled_facts, rules: compiled_rules}
+      {:ok, %{facts: compiled_facts, rules: relation_rules}}
     end
 
     @impl Datalog.Solver.Adapter
-    def all(%{relation_facts: relation_facts, rules: rules}, goal) do
-      rel = elem(goal, 0)
-      facts_goal = relation_facts[rel]
+    def all(%{facts: facts, rules: _relation_rules}, goal) do
       goal = rewrite_vars(goal)
 
-      composed_goal =
-        conj do
-          rules
-          facts_goal
-          goal
-        end
+      result =
+        run_all([x]) do
+          facts
+          |> Enum.map(&eq(x, &1))
+          |> disj()
 
-      facts =
-        run_all([rel_var]) do
-          eq(rel_var, composed_goal)
+          eq(x, goal)
         end
+        |> List.flatten()
 
-      {:ok, facts}
+      {:ok, result}
     end
 
     @impl Datalog.Solver.Adapter
-    def one(%{relation_facts: relation_facts, rules: rules}, goal) do
-      rel = elem(goal, 0)
-      facts_goal = relation_facts[rel]
+    def one(%{facts: facts, rules: _rules}, goal) do
       goal = rewrite_vars(goal)
 
-      composed_goal =
-        conj do
-          rules
-          facts_goal
-          goal
-        end
+      result =
+        run(1, [x]) do
+          facts
+          |> Enum.map(&eq(x, &1))
+          |> disj()
 
-      facts =
-        run(1, [rel_var]) do
-          eq(rel_var, composed_goal)
-        end
+          # disj(rules)
 
-      {:ok, facts}
+          eq(x, goal)
+        end
+        |> List.flatten()
+
+      {:ok, result}
     end
 
-    defp rewrite_vars(literal, acc \\ [])
+    @impl Datalog.Solver.Adapter
+    def exists?(kb, goal) do
+      case one(kb, goal) do
+        {:ok, []} -> false
+        {:ok, _f} -> true
+      end
+    end
 
-    defp rewrite_vars(literal, acc) when is_tuple(literal) do
+    def rewrite_vars(literal, acc \\ [])
+
+    def rewrite_vars(literal, acc) when is_tuple(literal) do
       rewrite_vars(Tuple.to_list(literal), acc)
     end
 
-    defp rewrite_vars([], acc) do
+    def rewrite_vars([], acc) do
       acc
       |> Enum.reverse()
       |> List.to_tuple()
     end
 
-    defp rewrite_vars([%Datalog.Var{} = v | t], acc) do
+    def rewrite_vars([%Datalog.Var{} = v | t], acc) do
       rewrite_vars(t, [clone_var(v) | acc])
     end
 
-    defp rewrite_vars([constant | t], acc) do
+    def rewrite_vars([constant | t], acc) do
       rewrite_vars(t, [constant | acc])
     end
 
-    defp clone_var(%Datalog.Var{} = var) do
-      struct(Var, Map.from_struct(var))
+    defp clone_var(%Var{} = var) do
+      struct(ExLogic.Var, Map.from_struct(var))
     end
   end
 end
